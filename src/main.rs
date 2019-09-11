@@ -1,4 +1,5 @@
 extern crate dirs;
+extern crate colored;
 
 use std::ffi::CString;
 use nix::unistd::*;
@@ -6,12 +7,13 @@ use nix::sys::wait::*;
 use std::fs;
 use std::io::prelude::*;
 use shell::parser::parser;
+use colored::*;
 
 fn main() {
 	let mut dir = dirs::home_dir().unwrap();
 	loop{
 		match &dir.to_str() {
-			Some(v) => println!("{}", v),
+			Some(v) => println!("{}", v.blue()),
 			None => println!("失敗"),
 		};
 		let command: Vec<String> = parser::read_vec();
@@ -34,7 +36,6 @@ fn main() {
 					},
 				};
 				let mut files: Vec<String> = Vec::new();
-				println!("{:?}",fs::read_dir(&target).unwrap());
 				for path in fs::read_dir(&target).unwrap() {
 					files.push(path.unwrap().path().display().to_string().replacen(&target, "", 1))
 				}
@@ -80,6 +81,7 @@ fn main() {
 				match &dir.to_str() {
 					Some(v) => {
 						let _ = fs::File::create(v);
+						println!("ファイル作成完了");
 					},
 					None => {
 						println!("ファイル作成失敗");
@@ -120,7 +122,6 @@ fn main() {
 					ForkResult::Parent { child } => {
 						let wstatus: Option<WaitPidFlag> = None;
 						let _ = waitpid(child, wstatus);
-						println!("プロセス{}が終了", child);
 					},
 					ForkResult::Child => {
 						dir.push(&*command[0]);
