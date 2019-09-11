@@ -5,12 +5,7 @@ use nix::unistd::*;
 use nix::sys::wait::*;
 use std::fs;
 use std::io::prelude::*;
-
-fn read_vec<T: std::str::FromStr>() -> Vec<T> {
-	let mut s = String::new();
-	std::io::stdin().read_line(&mut s).ok();
-	s.trim().split_whitespace().map(|e| e.parse().ok().unwrap()).collect()
-}
+use shell::parser::parser;
 
 fn main() {
 	let mut dir = dirs::home_dir().unwrap();
@@ -19,7 +14,7 @@ fn main() {
 			Some(v) => println!("{}", v),
 			None => println!("失敗"),
 		};
-		let command: Vec<String> = read_vec();
+		let command: Vec<String> = parser::read_vec();
 		if command.len() == 0 {
 			continue;
 		}
@@ -105,6 +100,19 @@ fn main() {
 						println!("ファイル開くのに失敗");
 					},
 				}
+				dir = dir.parent().unwrap().to_path_buf();
+			},
+			"rm" => {
+				dir.push(&*command[1]);
+				match &dir.to_str() {
+					Some(v) => {
+						let _ = fs::remove_file(v);
+						println!("ファイル削除完了");
+					},
+					None => {
+						println!("ファイル削除失敗");
+					},
+				};
 				dir = dir.parent().unwrap().to_path_buf();
 			},
 			_ => {
