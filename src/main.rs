@@ -50,6 +50,8 @@ fn main() {
 					dir = dirs::home_dir().unwrap();
 				} else if &*command[1] == ".." {
 					dir = dir.parent().unwrap().to_path_buf();
+				} else if &*command[1] == "~" {
+					dir = dirs::home_dir().unwrap();
 				} else {
 					dir.push(&*command[1]);
 					let result = fs::File::open(&dir);
@@ -65,6 +67,9 @@ fn main() {
 				println!("{:?}", dir);
 			},
 			"mkdir" => {
+				if command.len() <= 1 {
+					continue;
+				}
 				dir.push(&*command[1]);
 				match &dir.to_str() {
 					Some(v) => {
@@ -77,6 +82,9 @@ fn main() {
 				dir = dir.parent().unwrap().to_path_buf();
 			},
 			"touch" => {
+				if command.len() <= 1 {
+					continue;
+				}
 				dir.push(&*command[1]);
 				match &dir.to_str() {
 					Some(v) => {
@@ -90,6 +98,9 @@ fn main() {
 				dir = dir.parent().unwrap().to_path_buf();
 			},
 			"cat" => {
+				if command.len() <= 1 {
+					continue;
+				}
 				dir.push(&*command[1]);
 				match &dir.to_str() {
 					Some(v) => {
@@ -105,6 +116,9 @@ fn main() {
 				dir = dir.parent().unwrap().to_path_buf();
 			},
 			"rm" => {
+				if command.len() <= 1 {
+					continue;
+				}
 				dir.push(&*command[1]);
 				match &dir.to_str() {
 					Some(v) => {
@@ -116,6 +130,19 @@ fn main() {
 					},
 				};
 				dir = dir.parent().unwrap().to_path_buf();
+			},
+			"help" => {
+				println!("使えるコマンドは以下");
+				println!("exit: プロセス終了");
+				println!("ls: ディレクトリ内ファイル一覧表示");
+				println!("cd: ディレクトリ移動");
+				println!("pwd: 現在ディレクトリ一表示");
+				println!("mkdir: ディレクトリ作成");
+				println!("touch: ファイル作成");
+				println!("cat: ファイル内容表示");
+				println!("rm: ファイル削除");
+				println!("help: コマンド一覧");
+				println!("実行ファイルの実行も可能");
 			},
 			_ => {
 				match fork().expect("プロセス分離に失敗") {
@@ -149,6 +176,5 @@ fn main() {
 				};
 			},
 		};
-		println!();
 	}
 }
