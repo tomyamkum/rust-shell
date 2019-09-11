@@ -123,20 +123,27 @@ fn main() {
 						println!("プロセス{}が終了", child);
 					},
 					ForkResult::Child => {
-						let path = CString::new(&*command[0].to_string()).unwrap();
-						let args = if command.len() > 1 {
-							CString::new(command[1].to_string()).unwrap()
-						} else {
-							CString::new("").unwrap()
+						dir.push(&*command[0]);
+						match &dir.to_str() {
+							Some(v) => {
+								let path = CString::new(v.to_string()).unwrap();
+								let args = if command.len() > 1 {
+									CString::new(command[1].to_string()).unwrap()
+								} else {
+									CString::new("").unwrap()
+								};
+								execv(
+									&path, 
+									&[
+										path.clone(),
+										args,
+									],
+								).expect("子プロセス失敗");
+							},
+							None => {
+								println!("子プロセス失敗");
+							},
 						};
-					
-						execv(
-							&path,
-							&[
-								path.clone(),
-								args,
-							],
-						).expect("子プロセス失敗");
 					},
 				};
 			},
