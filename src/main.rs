@@ -42,7 +42,7 @@ fn main() {
 
 				files.sort();
 				for file in files {
-					println!("{}", file);
+					println!("{}", file.replacen("/", "", 1));
 				}
 			},
 			"cd" => {
