@@ -1,4 +1,4 @@
-pub struct command {
+pub struct Command {
 }
 
 pub fn read_vec<T: std::str::FromStr>() -> Vec<T> {
@@ -7,5 +7,5 @@ pub fn read_vec<T: std::str::FromStr>() -> Vec<T> {
 	s.trim().split_whitespace().map(|e| e.parse().ok().unwrap()).collect()
 }
 
-pub fn get_command(command_s: String) {
+pub fn get_command(_command_s: String) {
 }

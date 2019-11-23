@@ -10,6 +10,18 @@ use shell::parser::parser;
 use colored::*;
 
 fn main() {
+	println!("使えるコマンドは以下");
+	println!("exit: プロセス終了");
+	println!("ls: ディレクトリ内ファイル一覧表示");
+	println!("cd: ディレクトリ移動");
+	println!("pwd: 現在ディレクトリ一表示");
+	println!("mkdir: ディレクトリ作成");
+	println!("touch: ファイル作成");
+	println!("cat: ファイル内容表示");
+	println!("rm: ファイル削除");
+	println!("text hoge: hogeファイルを編集");
+	println!("help: コマンド一覧");
+	println!("実行ファイルの実行も可能");
 	let mut dir = dirs::home_dir().unwrap();
 	loop{
 		match &dir.to_str() {
@@ -141,8 +153,35 @@ fn main() {
 				println!("touch: ファイル作成");
 				println!("cat: ファイル内容表示");
 				println!("rm: ファイル削除");
+				println!("text hoge: hogeファイルを編集");
 				println!("help: コマンド一覧");
 				println!("実行ファイルの実行も可能");
+			},
+			"text" => {
+				match fork().expect("プロセス分離に失敗") {
+					ForkResult::Parent { child } => {
+						let wstatus: Option<WaitPidFlag> = None;
+						let _ = waitpid(child, wstatus);
+					},
+					ForkResult::Child => {
+						dir.push(&*command[0]);
+						let path = CString::new("/Users/tomoya/rustworks/text_editer/target/debug/./text_editer").unwrap();
+						let args = if command.len() > 1 {
+							dir.set_file_name(&command[1]);
+							CString::new(dir.to_str().unwrap()).unwrap()
+							//CString::new(dir + command[1].to_string()).unwrap()
+						} else {
+							CString::new("").unwrap()
+						};
+						execv(
+							&path,
+							&[
+								path.clone(),
+								args,
+							],
+						).expect("textプログラム失敗");
+					},
+				};
 			},
 			_ => {
 				match fork().expect("プロセス分離に失敗") {
