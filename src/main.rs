@@ -20,13 +20,14 @@ fn main() {
 	println!("cat: ファイル内容表示");
 	println!("rm: ファイル削除");
 	println!("text hoge: hogeファイルを編集");
+	println!("dentaku: dentakuインタラクティブシェルを開く");
 	println!("help: コマンド一覧");
 	println!("実行ファイルの実行も可能");
 	let mut dir = dirs::home_dir().unwrap();
 	loop{
 		match &dir.to_str() {
 			Some(v) => println!("{}", v.blue()),
-			None => println!("失敗"),
+			None => println!("{}", "失敗".red()),
 		};
 		let command: Vec<String> = parser::read_vec();
 		if command.len() == 0 {
@@ -34,7 +35,7 @@ fn main() {
 		}
 		match &*command[0] {
 			"exit" => {
-				println!("プロセスを終了します");
+				println!("{}", "プロセスを終了します".red());
 				break;
 			},
 			"ls" => {
@@ -54,7 +55,7 @@ fn main() {
 
 				files.sort();
 				for file in files {
-					println!("{}", file.replacen("/", "", 1));
+					println!("{}", file.replacen("/", "", 1).blue());
 				}
 			},
 			"cd" => {
@@ -71,7 +72,10 @@ fn main() {
 						Ok(_) => {
 							//println!("ディレクトリ変更"),
 						},
-						Err(_) => dir = dir.parent().unwrap().to_path_buf(),
+						Err(_) => {
+							println!("{}", "指定したディレクトリは存在しません".red());
+							dir = dir.parent().unwrap().to_path_buf();
+						}
 					};
 				}
 			},
@@ -88,7 +92,7 @@ fn main() {
 						let _ = fs::create_dir(v);
 					},
 					None => {
-						println!("ディレクトリ作成失敗");
+						println!("{}", "ディレクトリ作成失敗".red());
 					},
 				};
 				dir = dir.parent().unwrap().to_path_buf();
@@ -104,7 +108,7 @@ fn main() {
 						println!("ファイル作成完了");
 					},
 					None => {
-						println!("ファイル作成失敗");
+						println!("{}", "ファイル作成失敗".red());
 					},
 				};
 				dir = dir.parent().unwrap().to_path_buf();
@@ -122,7 +126,7 @@ fn main() {
 						println!("{}", contents);
 					},
 					None => {
-						println!("ファイル開くのに失敗");
+						println!("{}", "ファイル開くのに失敗".red());
 					},
 				}
 				dir = dir.parent().unwrap().to_path_buf();
@@ -138,7 +142,7 @@ fn main() {
 						println!("ファイル削除完了");
 					},
 					None => {
-						println!("ファイル削除失敗");
+						println!("{}", "ファイル削除失敗".red());
 					},
 				};
 				dir = dir.parent().unwrap().to_path_buf();
@@ -154,8 +158,36 @@ fn main() {
 				println!("cat: ファイル内容表示");
 				println!("rm: ファイル削除");
 				println!("text hoge: hogeファイルを編集");
+				println!("dentaku: dentakuインタラクティブシェルを開く");
 				println!("help: コマンド一覧");
 				println!("実行ファイルの実行も可能");
+			},
+			"dentaku" => {
+				match fork().expect("プロセス分離に失敗") {
+					ForkResult::Parent { child } => {
+						let wstatus: Option<WaitPidFlag> = None;
+						let _ = waitpid(child, wstatus);
+					},
+					ForkResult::Child => {
+						dir.push(&*command[0]);
+						let path = CString::new("/Users/tomoya/rustworks/dentaku/target/debug/./dentaku").unwrap();
+						//let path = CString::new("./text_editer").unwrap();
+						let args = if command.len() > 1 {
+							dir.set_file_name(&command[1]);
+							CString::new(dir.to_str().unwrap()).unwrap()
+							//CString::new(dir + command[1].to_string()).unwrap()
+						} else {
+							CString::new("").unwrap()
+						};
+						execv(
+							&path,
+							&[
+								path.clone(),
+								args,
+							],
+						).expect("textプログラム失敗");
+					},
+				};
 			},
 			"text" => {
 				match fork().expect("プロセス分離に失敗") {
@@ -166,6 +198,7 @@ fn main() {
 					ForkResult::Child => {
 						dir.push(&*command[0]);
 						let path = CString::new("/Users/tomoya/rustworks/text_editer/target/debug/./text_editer").unwrap();
+						//let path = CString::new("./text_editer").unwrap();
 						let args = if command.len() > 1 {
 							dir.set_file_name(&command[1]);
 							CString::new(dir.to_str().unwrap()).unwrap()
@@ -208,7 +241,7 @@ fn main() {
 								).expect("子プロセス失敗");
 							},
 							None => {
-								println!("子プロセス失敗");
+								println!("{}", "子プロセス失敗".red());
 							},
 						};
 					},
